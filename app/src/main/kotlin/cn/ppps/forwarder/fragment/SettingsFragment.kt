@@ -129,6 +129,17 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
                     .open(this@SettingsFragment)
             }
         })
+                // --- 新增：自建接码容器一键配置入口 ---
+        titleBar!!.addAction(object : TitleBar.TextAction("接码") {
+            @SingleClick
+            override fun performAction(view: View) {
+                PageOption.to(LocalSmsServerFragment::class.java)
+                    .setNewActivity(true)
+                    .open(this@SettingsFragment)
+            }
+        })
+        // ------------------------------------
+
         return titleBar
     }
 
