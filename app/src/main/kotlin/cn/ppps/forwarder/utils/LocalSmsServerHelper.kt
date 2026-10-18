@@ -29,94 +29,90 @@ object LocalSmsServerHelper {
         sim2Phone: String
     ): Boolean {
         val finalUrl = formatWebhookUrl(serverUrl)
+        val gson = Gson()
 
         if (sim1Phone.isNotBlank()) {
-            syncSingleSim(
-                simSlot = "SIM1",
-                senderName = "Webhook-卡1",
-                ruleName = "接码容器-卡1",
-                phone = sim1Phone.trim(),
-                webhookUrl = finalUrl,
-                enabled = true
-            )
-        }
-
-        if (sim2Phone.isNotBlank()) {
-            syncSingleSim(
-                simSlot = "SIM2",
-                senderName = "Webhook-卡2",
-                ruleName = "接码容器-卡2",
-                phone = sim2Phone.trim(),
-                webhookUrl = finalUrl,
-                enabled = sim2Enable
-            )
-        }
-        return true
-    }
-
-    private fun syncSingleSim(
-        simSlot: String,
-        senderName: String,
-        ruleName: String,
-        phone: String,
-        webhookUrl: String,
-        enabled: Boolean
-    ) {
-        val gson = Gson()
-        val settingMap = mapOf(
-            "method" to "POST",
-            "webServer" to webhookUrl,
-            "secret" to "",
-            "response" to "",
-            "webParams" to gson.toJson(mapOf("phone" to phone, "content" to "[content]")),
-            "headers" to mapOf("Content-Type" to "application/json;charset=utf-8")
-        )
-        val jsonSetting = gson.toJson(settingMap)
-
-        val senders = Core.sender.getAll()
-        var targetSender = senders.find { it.name == senderName }
-
-        if (targetSender == null) {
-            targetSender = Sender(
-                id = 0,
+            val s1Setting = gson.toJson(mapOf(
+                "method" to "POST",
+                "webServer" to finalUrl,
+                "secret" to "",
+                "response" to "",
+                "webParams" to gson.toJson(mapOf("phone" to sim1Phone.trim(), "content" to "[content]")),
+                "headers" to mapOf("Content-Type" to "application/json;charset=utf-8")
+            ))
+            val sender1 = Sender(
+                id = 1L,
                 type = TYPE_WEBHOOK,
-                name = senderName,
-                jsonSetting = jsonSetting,
-                status = if (enabled) 1 else 0,
+                name = "Webhook-卡1",
+                jsonSetting = s1Setting,
+                status = 1,
                 time = Date()
             )
-            val newId = Core.sender.insert(targetSender)
-            targetSender.id = newId
-        } else {
-            targetSender.jsonSetting = jsonSetting
-            targetSender.status = if (enabled) 1 else 0
-            Core.sender.update(targetSender)
-        }
+            Core.sender.insert(sender1)
 
-        val rules = Core.rule.getAll()
-        var targetRule = rules.find { it.title == ruleName || (it.simSlot == simSlot && it.senderId == targetSender.id) }
-
-        if (targetRule == null) {
-            targetRule = Rule(
-                id = 0,
+            val rule1 = Rule(
+                id = 1L,
                 type = "sms",
                 filed = "transpond_all",
                 check = "is",
                 value = "",
-                senderId = targetSender.id,
-                simSlot = simSlot,
-                status = if (enabled) 1 else 0,
+                senderId = 1L,
+                smsTemplate = "",
+                regexReplace = "",
+                simSlot = "SIM1",
+                status = 1,
                 time = Date(),
-                senderList = listOf(targetSender),
+                senderList = listOf(sender1),
                 senderLogic = "ALL",
-                title = ruleName
+                silentPeriodStart = 0,
+                silentPeriodEnd = 0,
+                silentDayOfWeek = "",
+                title = "接码容器-卡1"
             )
-            Core.rule.insert(targetRule)
-        } else {
-            targetRule.status = if (enabled) 1 else 0
-            targetRule.senderId = targetSender.id
-            targetRule.senderList = listOf(targetSender)
-            Core.rule.update(targetRule)
+            Core.rule.insert(rule1)
         }
+
+        if (sim2Phone.isNotBlank()) {
+            val s2Setting = gson.toJson(mapOf(
+                "method" to "POST",
+                "webServer" to finalUrl,
+                "secret" to "",
+                "response" to "",
+                "webParams" to gson.toJson(mapOf("phone" to sim2Phone.trim(), "content" to "[content]")),
+                "headers" to mapOf("Content-Type" to "application/json;charset=utf-8")
+            ))
+            val sender2 = Sender(
+                id = 2L,
+                type = TYPE_WEBHOOK,
+                name = "Webhook-卡2",
+                jsonSetting = s2Setting,
+                status = if (sim2Enable) 1 else 0,
+                time = Date()
+            )
+            Core.sender.insert(sender2)
+
+            val rule2 = Rule(
+                id = 2L,
+                type = "sms",
+                filed = "transpond_all",
+                check = "is",
+                value = "",
+                senderId = 2L,
+                smsTemplate = "",
+                regexReplace = "",
+                simSlot = "SIM2",
+                status = if (sim2Enable) 1 else 0,
+                time = Date(),
+                senderList = listOf(sender2),
+                senderLogic = "ALL",
+                silentPeriodStart = 0,
+                silentPeriodEnd = 0,
+                silentDayOfWeek = "",
+                title = "接码容器-卡2"
+            )
+            Core.rule.insert(rule2)
+        }
+
+        return true
     }
 }
