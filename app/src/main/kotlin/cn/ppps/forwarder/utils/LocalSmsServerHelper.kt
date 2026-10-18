@@ -1,6 +1,6 @@
 package cn.ppps.forwarder.utils
 
-import cn.ppps.forwarder.Core
+import cn.ppps.forwarder.core.Core
 import cn.ppps.forwarder.database.entity.Rule
 import cn.ppps.forwarder.database.entity.Sender
 import com.google.gson.Gson
