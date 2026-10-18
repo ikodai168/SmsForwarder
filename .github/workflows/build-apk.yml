@@ -20,27 +20,16 @@ jobs:
           distribution: 'zulu'
           java-version: '11'
 
-      - name: Generate Keystore & Config
-        run: |
-          mkdir -p keystore
-          keytool -genkey -v -keystore keystore/release.jks -alias smsf -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=SmsForwarder,OU=App,O=Dev,L=BJ,S=BJ,C=CN"
-          cat << 'EOF' > keystore/keystore.properties
-          storeFile=../keystore/release.jks
-          storePassword=123456
-          keyAlias=smsf
-          keyPassword=123456
-          EOF
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # 采用通用标准打包，彻底绕过官方原作者的私有混淆拦截
       - name: Build with Gradle
-        run: bash ./gradlew assembleRelease --no-daemon --stacktrace
+        run: bash ./gradlew assembleUniversalDebug --no-daemon --stacktrace
 
-      - name: Upload Universal Release APK
+      # 自动抓取生成好的通用 APK
+      - name: Upload Universal APK
         uses: actions/upload-artifact@v4
         with:
-          name: SmsForwarder-Universal-Release
-          path: |
-            build/app/outputs/apk/release/SmsF_*_universal_release.apk
-            app/build/outputs/apk/release/SmsF_*_universal_release.apk
+          name: SmsForwarder-Custom-Universal-APK
+          path: "**/build/**/apk/**/*.apk"
