@@ -1446,5 +1446,70 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
         binding!!.layoutSpApp.visibility = View.VISIBLE
 
     }
+    private fun showLocalSmsServerDialog() {
+        val context = requireContext()
+        val layout = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 20, 50, 20)
+        }
+
+        layout.addView(TextView(context).apply {
+            text = "接码容器 WebServer 地址 (IP+端口):"
+            textSize = 14f
+        })
+        val etServer = EditText(context).apply {
+            hint = "例如: http://192.168.8.162:20086"
+            setText(SharedPreference.getString("sms_local_server_url", "http://192.168.8.162:20086"))
+        }
+        layout.addView(etServer)
+
+        layout.addView(TextView(context).apply {
+            text = "\n卡1 (SIM1) 手机号:"
+            textSize = 14f
+        })
+        val etSim1 = EditText(context).apply {
+            hint = "请输入卡1真实手机号"
+            setText(SharedPreference.getString("sms_local_sim1_phone", ""))
+        }
+        layout.addView(etSim1)
+
+        val cbSim2 = CheckBox(context).apply {
+            text = "启用 卡2 (SIM2) 转发"
+            isChecked = SharedPreference.getBoolean("sms_local_sim2_enable", true)
+        }
+        layout.addView(cbSim2)
+
+        val etSim2 = EditText(context).apply {
+            hint = "请输入卡2真实手机号 (单卡留空即可)"
+            setText(SharedPreference.getString("sms_local_sim2_phone", ""))
+        }
+        layout.addView(etSim2)
+
+        MaterialDialog.Builder(context)
+            .title("自建接码容器一键配置")
+            .customView(layout, true)
+            .positiveText(R.string.confirm)
+            .negativeText(R.string.cancel)
+            .onPositive { _, _ ->
+                val server = etServer.text.toString().trim()
+                val sim1 = etSim1.text.toString().trim()
+                val sim2Enable = cbSim2.isChecked
+                val sim2 = etSim2.text.toString().trim()
+
+                if (server.isEmpty() || sim1.isEmpty()) {
+                    XToastUtils.error("请至少填入 WebServer 地址和卡1手机号！")
+                    return@onPositive
+                }
+
+                SharedPreference.putString("sms_local_server_url", server)
+                SharedPreference.putString("sms_local_sim1_phone", sim1)
+                SharedPreference.putBoolean("sms_local_sim2_enable", sim2Enable)
+                SharedPreference.putString("sms_local_sim2_phone", sim2)
+
+                cn.ppps.forwarder.utils.LocalSmsServerHelper.applyServerConfig(server, sim1, sim2Enable, sim2)
+                XToastUtils.success("接码通道与分流规则已自动生效！")
+            }
+            .show()
+    }
 
 }
