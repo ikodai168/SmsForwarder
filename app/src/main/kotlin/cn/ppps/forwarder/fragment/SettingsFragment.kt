@@ -129,7 +129,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
                     .open(this@SettingsFragment)
             }
         })
-                // --- 新增：自建接码容器一键配置弹窗入口 ---
+        // --- 新增：自建接码容器一键配置弹窗入口 ---
         titleBar!!.addAction(object : TitleBar.TextAction("接码") {
             @SingleClick
             override fun performAction(view: View) {
@@ -137,7 +137,6 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
             }
         })
         // ----------------------------------------
-
         return titleBar
     }
 
@@ -1446,6 +1445,9 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
         binding!!.layoutSpApp.visibility = View.VISIBLE
 
     }
+
+
+    // ================= 自建接码容器一键配置弹窗 =================
     private fun showLocalSmsServerDialog() {
         val context = requireContext()
         val layout = LinearLayout(context).apply {
@@ -1473,7 +1475,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
         }
         layout.addView(etSim1)
 
-        val cbSim2 = CheckBox(context).apply {
+        val cbSim2 = android.widget.CheckBox(context).apply {
             text = "启用 卡2 (SIM2) 转发"
             isChecked = SharedPreference.getBoolean("sms_local_sim2_enable", true)
         }
@@ -1511,5 +1513,4 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
             }
             .show()
     }
-
 }
